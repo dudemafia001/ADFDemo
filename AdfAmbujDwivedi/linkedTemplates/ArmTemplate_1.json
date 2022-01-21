@@ -1,0 +1,1241 @@
+{
+	"$schema": "http://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+	"contentVersion": "1.0.0.0",
+	"parameters": {
+		"factoryName": {
+			"type": "string",
+			"metadata": "Data Factory name",
+			"defaultValue": "AdfAmbujDwivedi"
+		}
+	},
+	"variables": {
+		"factoryId": "[concat('Microsoft.DataFactory/factories/', parameters('factoryName'))]"
+	},
+	"resources": [
+		{
+			"name": "[concat(parameters('factoryName'), '/MetaData')]",
+			"type": "Microsoft.DataFactory/factories/pipelines",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"activities": [
+					{
+						"name": "Get Metadata1",
+						"type": "GetMetadata",
+						"dependsOn": [],
+						"policy": {
+							"timeout": "7.00:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"dataset": {
+								"referenceName": "InputDataSet",
+								"type": "DatasetReference",
+								"parameters": {}
+							},
+							"fieldList": [
+								"size",
+								"lastModified"
+							],
+							"storeSettings": {
+								"type": "AzureBlobStorageReadSettings",
+								"recursive": true,
+								"enablePartitionDiscovery": false
+							},
+							"formatSettings": {
+								"type": "BinaryReadSettings"
+							}
+						}
+					},
+					{
+						"name": "If Condition1",
+						"type": "IfCondition",
+						"dependsOn": [
+							{
+								"activity": "Get Metadata1",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							}
+						],
+						"userProperties": [],
+						"typeProperties": {
+							"expression": {
+								"value": "@equals(formatDateTime(utcNow(),'YYYY-MM-DD'),\nformatDateTime(activity('Get Metadata1').output.lastModified,\n'YYYY-MM-DD'))",
+								"type": "Expression"
+							},
+							"ifFalseActivities": [
+								{
+									"name": "Copy data2",
+									"type": "Copy",
+									"dependsOn": [],
+									"policy": {
+										"timeout": "7.00:00:00",
+										"retry": 0,
+										"retryIntervalInSeconds": 30,
+										"secureOutput": false,
+										"secureInput": false
+									},
+									"userProperties": [],
+									"typeProperties": {
+										"source": {
+											"type": "BinarySource",
+											"storeSettings": {
+												"type": "AzureBlobStorageReadSettings",
+												"recursive": true
+											},
+											"formatSettings": {
+												"type": "BinaryReadSettings"
+											}
+										},
+										"sink": {
+											"type": "BinarySink",
+											"storeSettings": {
+												"type": "AzureBlobStorageWriteSettings"
+											}
+										},
+										"enableStaging": false
+									},
+									"inputs": [
+										{
+											"referenceName": "InputDataSet",
+											"type": "DatasetReference",
+											"parameters": {}
+										}
+									],
+									"outputs": [
+										{
+											"referenceName": "OutputDataSet",
+											"type": "DatasetReference",
+											"parameters": {
+												"FileName": "False"
+											}
+										}
+									]
+								}
+							],
+							"ifTrueActivities": [
+								{
+									"name": "Copy data1",
+									"type": "Copy",
+									"dependsOn": [],
+									"policy": {
+										"timeout": "7.00:00:00",
+										"retry": 0,
+										"retryIntervalInSeconds": 30,
+										"secureOutput": false,
+										"secureInput": false
+									},
+									"userProperties": [],
+									"typeProperties": {
+										"source": {
+											"type": "BinarySource",
+											"storeSettings": {
+												"type": "AzureBlobStorageReadSettings",
+												"recursive": true
+											},
+											"formatSettings": {
+												"type": "BinaryReadSettings"
+											}
+										},
+										"sink": {
+											"type": "BinarySink",
+											"storeSettings": {
+												"type": "AzureBlobStorageWriteSettings"
+											}
+										},
+										"enableStaging": false
+									},
+									"inputs": [
+										{
+											"referenceName": "InputDataSet",
+											"type": "DatasetReference",
+											"parameters": {}
+										}
+									],
+									"outputs": [
+										{
+											"referenceName": "OutputDataSet",
+											"type": "DatasetReference",
+											"parameters": {
+												"FileName": "True"
+											}
+										}
+									]
+								}
+							]
+						}
+					}
+				],
+				"policy": {
+					"elapsedTimeMetric": {},
+					"cancelAfter": {}
+				},
+				"annotations": [],
+				"lastPublishTime": "2022-01-11T16:00:01Z"
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/Switch')]",
+			"type": "Microsoft.DataFactory/factories/pipelines",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"activities": [
+					{
+						"name": "Switch1",
+						"type": "Switch",
+						"dependsOn": [],
+						"userProperties": [],
+						"typeProperties": {
+							"on": {
+								"value": "@pipeline().parameters.FolderName",
+								"type": "Expression"
+							},
+							"cases": [
+								{
+									"value": "Output1",
+									"activities": [
+										{
+											"name": "Copy data1",
+											"type": "Copy",
+											"dependsOn": [],
+											"policy": {
+												"timeout": "7.00:00:00",
+												"retry": 0,
+												"retryIntervalInSeconds": 30,
+												"secureOutput": false,
+												"secureInput": false
+											},
+											"userProperties": [],
+											"typeProperties": {
+												"source": {
+													"type": "BinarySource",
+													"storeSettings": {
+														"type": "AzureBlobStorageReadSettings",
+														"recursive": true
+													},
+													"formatSettings": {
+														"type": "BinaryReadSettings"
+													}
+												},
+												"sink": {
+													"type": "BinarySink",
+													"storeSettings": {
+														"type": "AzureBlobStorageWriteSettings"
+													}
+												},
+												"enableStaging": false
+											},
+											"inputs": [
+												{
+													"referenceName": "InputDataSet",
+													"type": "DatasetReference",
+													"parameters": {}
+												}
+											],
+											"outputs": [
+												{
+													"referenceName": "DataSetForSwitchPipeline",
+													"type": "DatasetReference",
+													"parameters": {
+														"folder": {
+															"value": "@pipeline().parameters.FolderName",
+															"type": "Expression"
+														}
+													}
+												}
+											]
+										}
+									]
+								},
+								{
+									"value": "Output2",
+									"activities": [
+										{
+											"name": "Copy data2",
+											"type": "Copy",
+											"dependsOn": [],
+											"policy": {
+												"timeout": "7.00:00:00",
+												"retry": 0,
+												"retryIntervalInSeconds": 30,
+												"secureOutput": false,
+												"secureInput": false
+											},
+											"userProperties": [],
+											"typeProperties": {
+												"source": {
+													"type": "BinarySource",
+													"storeSettings": {
+														"type": "AzureBlobStorageReadSettings",
+														"recursive": true
+													},
+													"formatSettings": {
+														"type": "BinaryReadSettings"
+													}
+												},
+												"sink": {
+													"type": "BinarySink",
+													"storeSettings": {
+														"type": "AzureBlobStorageWriteSettings"
+													}
+												},
+												"enableStaging": false
+											},
+											"inputs": [
+												{
+													"referenceName": "InputDataSet",
+													"type": "DatasetReference",
+													"parameters": {}
+												}
+											],
+											"outputs": [
+												{
+													"referenceName": "DataSetForSwitchPipeline",
+													"type": "DatasetReference",
+													"parameters": {
+														"folder": {
+															"value": "@pipeline().parameters.FolderName",
+															"type": "Expression"
+														}
+													}
+												}
+											]
+										}
+									]
+								}
+							]
+						}
+					}
+				],
+				"policy": {
+					"elapsedTimeMetric": {},
+					"cancelAfter": {}
+				},
+				"parameters": {
+					"FolderName": {
+						"type": "string",
+						"defaultValue": "Output1"
+					}
+				},
+				"annotations": [],
+				"lastPublishTime": "2022-01-12T11:17:14Z"
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/Until')]",
+			"type": "Microsoft.DataFactory/factories/pipelines",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"activities": [
+					{
+						"name": "Until",
+						"type": "Until",
+						"dependsOn": [],
+						"userProperties": [],
+						"typeProperties": {
+							"expression": {
+								"value": "@bool(variables('FileAvailable'))",
+								"type": "Expression"
+							},
+							"activities": [
+								{
+									"name": "Get Metadata1",
+									"type": "GetMetadata",
+									"dependsOn": [],
+									"policy": {
+										"timeout": "7.00:00:00",
+										"retry": 0,
+										"retryIntervalInSeconds": 30,
+										"secureOutput": false,
+										"secureInput": false
+									},
+									"userProperties": [],
+									"typeProperties": {
+										"dataset": {
+											"referenceName": "InputDataSet",
+											"type": "DatasetReference",
+											"parameters": {}
+										},
+										"fieldList": [
+											"exists"
+										],
+										"storeSettings": {
+											"type": "AzureBlobStorageReadSettings",
+											"recursive": true,
+											"enablePartitionDiscovery": false
+										},
+										"formatSettings": {
+											"type": "BinaryReadSettings"
+										}
+									}
+								},
+								{
+									"name": "If Condition1",
+									"type": "IfCondition",
+									"dependsOn": [
+										{
+											"activity": "Get Metadata1",
+											"dependencyConditions": [
+												"Succeeded"
+											]
+										}
+									],
+									"userProperties": [],
+									"typeProperties": {
+										"expression": {
+											"value": "@bool(activity('Get Metadata1').output.exists)",
+											"type": "Expression"
+										},
+										"ifFalseActivities": [
+											{
+												"name": "Wait1",
+												"type": "Wait",
+												"dependsOn": [],
+												"userProperties": [],
+												"typeProperties": {
+													"waitTimeInSeconds": 30
+												}
+											}
+										],
+										"ifTrueActivities": [
+											{
+												"name": "Set variable1",
+												"type": "SetVariable",
+												"dependsOn": [],
+												"userProperties": [],
+												"typeProperties": {
+													"variableName": "FileAvailable",
+													"value": "true"
+												}
+											}
+										]
+									}
+								}
+							],
+							"timeout": "7.00:00:00"
+						}
+					},
+					{
+						"name": "Copy data1",
+						"type": "Copy",
+						"dependsOn": [
+							{
+								"activity": "Until",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							}
+						],
+						"policy": {
+							"timeout": "7.00:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"source": {
+								"type": "BinarySource",
+								"storeSettings": {
+									"type": "AzureBlobStorageReadSettings",
+									"recursive": true
+								},
+								"formatSettings": {
+									"type": "BinaryReadSettings"
+								}
+							},
+							"sink": {
+								"type": "BinarySink",
+								"storeSettings": {
+									"type": "AzureBlobStorageWriteSettings"
+								}
+							},
+							"enableStaging": false
+						},
+						"inputs": [
+							{
+								"referenceName": "InputDataSet",
+								"type": "DatasetReference",
+								"parameters": {}
+							}
+						],
+						"outputs": [
+							{
+								"referenceName": "OutputDataSet",
+								"type": "DatasetReference",
+								"parameters": {
+									"FileName": "Available"
+								}
+							}
+						]
+					}
+				],
+				"policy": {
+					"elapsedTimeMetric": {},
+					"cancelAfter": {}
+				},
+				"variables": {
+					"FileAvailable": {
+						"type": "String",
+						"defaultValue": "false"
+					}
+				},
+				"annotations": [],
+				"lastPublishTime": "2022-01-12T05:07:56Z"
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/pipeline2')]",
+			"type": "Microsoft.DataFactory/factories/pipelines",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"activities": [
+					{
+						"name": "Copy data1",
+						"type": "Copy",
+						"dependsOn": [],
+						"policy": {
+							"timeout": "7.00:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"source": {
+								"type": "SqlServerSource",
+								"queryTimeout": "02:00:00",
+								"partitionOption": "None"
+							},
+							"sink": {
+								"type": "SqlServerSink"
+							},
+							"enableStaging": false,
+							"translator": {
+								"type": "TabularTranslator",
+								"typeConversion": true,
+								"typeConversionSettings": {
+									"allowDataTruncation": true,
+									"treatBooleanAsNumber": false
+								}
+							}
+						},
+						"inputs": [
+							{
+								"referenceName": "SqlServerTable1",
+								"type": "DatasetReference",
+								"parameters": {
+									"tableName": {
+										"value": "@pipeline().parameters.sourceTable",
+										"type": "Expression"
+									},
+									"dbNameFromDBSet": {
+										"value": "@pipeline().parameters.dbNamePipeline",
+										"type": "Expression"
+									}
+								}
+							}
+						],
+						"outputs": [
+							{
+								"referenceName": "SqlServerTable1",
+								"type": "DatasetReference",
+								"parameters": {
+									"tableName": {
+										"value": "@pipeline().parameters.destTable",
+										"type": "Expression"
+									},
+									"dbNameFromDBSet": {
+										"value": "@pipeline().parameters.dbNamePipeline",
+										"type": "Expression"
+									}
+								}
+							}
+						]
+					}
+				],
+				"policy": {
+					"elapsedTimeMetric": {},
+					"cancelAfter": {}
+				},
+				"parameters": {
+					"sourceTable": {
+						"type": "String"
+					},
+					"dbNamePipeline": {
+						"type": "String"
+					},
+					"destTable": {
+						"type": "String"
+					}
+				},
+				"annotations": [],
+				"lastPublishTime": "2022-01-09T07:37:19Z"
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/Branching')]",
+			"type": "Microsoft.DataFactory/factories/dataflows",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"type": "MappingDataFlow",
+				"typeProperties": {
+					"sources": [
+						{
+							"dataset": {
+								"referenceName": "EmployeeData",
+								"type": "DatasetReference"
+							},
+							"name": "Employee"
+						},
+						{
+							"dataset": {
+								"referenceName": "DepartmentData",
+								"type": "DatasetReference"
+							},
+							"name": "Department"
+						}
+					],
+					"sinks": [
+						{
+							"dataset": {
+								"referenceName": "Output",
+								"type": "DatasetReference"
+							},
+							"name": "EDJoin"
+						},
+						{
+							"dataset": {
+								"referenceName": "Output",
+								"type": "DatasetReference"
+							},
+							"name": "sink1"
+						}
+					],
+					"transformations": [
+						{
+							"name": "Aggregate"
+						},
+						{
+							"name": "Join1"
+						},
+						{
+							"name": "Join2"
+						}
+					],
+					"script": "source(output(\n\t\tempid as string,\n\t\tname as string,\n\t\tcountry as string,\n\t\tdepartment as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tignoreNoFilesFound: false) ~> Employee\nsource(output(\n\t\tdeptid as string,\n\t\tdname as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tignoreNoFilesFound: false) ~> Department\nEmployee aggregate(groupBy(department),\n\tEmployeeByDept = count(empid),\n\tpartitionBy('hash', 1)) ~> Aggregate\nEmployee, Department join(department == deptid,\n\tjoinType:'inner',\n\tbroadcast: 'auto')~> Join1\nAggregate, Department join(department == deptid,\n\tjoinType:'inner',\n\tbroadcast: 'auto')~> Join2\nJoin1 sink(allowSchemaDrift: true,\n\tvalidateSchema: false,\n\tinput(\n\t\tColumn_1 as string,\n\t\tColumn_2 as string,\n\t\tColumn_3 as string,\n\t\tColumn_4 as string\n\t),\n\tpartitionFileNames:['EmpAndDept.csv'],\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true,\n\tmapColumn(\n\t\tColumn_1 = empid,\n\t\tColumn_2 = name,\n\t\tColumn_3 = country,\n\t\tColumn_4 = dname\n\t),\n\tpartitionBy('hash', 1)) ~> EDJoin\nJoin2 sink(allowSchemaDrift: true,\n\tvalidateSchema: false,\n\tinput(\n\t\tColumn_1 as string,\n\t\tColumn_2 as string,\n\t\tColumn_3 as string,\n\t\tColumn_4 as string\n\t),\n\tpartitionFileNames:['GroupEmpByDept.csv'],\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true,\n\tpartitionBy('hash', 1)) ~> sink1"
+				}
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/Conditional')]",
+			"type": "Microsoft.DataFactory/factories/dataflows",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"type": "MappingDataFlow",
+				"typeProperties": {
+					"sources": [
+						{
+							"dataset": {
+								"referenceName": "EmployeeData",
+								"type": "DatasetReference"
+							},
+							"name": "Employee"
+						},
+						{
+							"dataset": {
+								"referenceName": "DepartmentData",
+								"type": "DatasetReference"
+							},
+							"name": "Department"
+						}
+					],
+					"sinks": [
+						{
+							"dataset": {
+								"referenceName": "Output",
+								"type": "DatasetReference"
+							},
+							"name": "IT"
+						},
+						{
+							"dataset": {
+								"referenceName": "Output",
+								"type": "DatasetReference"
+							},
+							"name": "HR"
+						},
+						{
+							"dataset": {
+								"referenceName": "Output",
+								"type": "DatasetReference"
+							},
+							"name": "Payroll"
+						}
+					],
+					"transformations": [
+						{
+							"name": "ConditionalSplit"
+						},
+						{
+							"name": "JoinForIT"
+						},
+						{
+							"name": "JoinForHR"
+						},
+						{
+							"name": "JoinForPayroll"
+						}
+					],
+					"script": "source(output(\n\t\tempid as string,\n\t\tname as string,\n\t\tcountry as string,\n\t\tdepartment as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tignoreNoFilesFound: false) ~> Employee\nsource(output(\n\t\tdeptid as string,\n\t\tdname as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tignoreNoFilesFound: false) ~> Department\nEmployee split(equals(department,'1'),\n\tequals(department,'2'),\n\tequals(department,'3'),\n\tdisjoint: false) ~> ConditionalSplit@(ITEmployee, HREmployee, PayrollEmployee)\nConditionalSplit@ITEmployee, Department join(department == deptid,\n\tjoinType:'inner',\n\tbroadcast: 'auto')~> JoinForIT\nConditionalSplit@HREmployee, Department join(department == deptid,\n\tjoinType:'inner',\n\tbroadcast: 'auto')~> JoinForHR\nConditionalSplit@PayrollEmployee, Department join(department == deptid,\n\tjoinType:'inner',\n\tbroadcast: 'auto')~> JoinForPayroll\nJoinForIT sink(allowSchemaDrift: true,\n\tvalidateSchema: false,\n\tinput(\n\t\tColumn_1 as string,\n\t\tColumn_2 as string,\n\t\tColumn_3 as string,\n\t\tColumn_4 as string\n\t),\n\tpartitionFileNames:['ITEmp.csv'],\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true,\n\tmapColumn(\n\t\tempid,\n\t\tname,\n\t\tcountry,\n\t\tdname\n\t),\n\tpartitionBy('hash', 1)) ~> IT\nJoinForHR sink(allowSchemaDrift: true,\n\tvalidateSchema: false,\n\tinput(\n\t\tColumn_1 as string,\n\t\tColumn_2 as string,\n\t\tColumn_3 as string,\n\t\tColumn_4 as string\n\t),\n\tpartitionFileNames:['HREmp.csv'],\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true,\n\tmapColumn(\n\t\tempid,\n\t\tname,\n\t\tcountry,\n\t\tdname\n\t),\n\tpartitionBy('hash', 1)) ~> HR\nJoinForPayroll sink(allowSchemaDrift: true,\n\tvalidateSchema: false,\n\tinput(\n\t\tColumn_1 as string,\n\t\tColumn_2 as string,\n\t\tColumn_3 as string,\n\t\tColumn_4 as string\n\t),\n\tpartitionFileNames:['PayrollEmp.csv'],\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true,\n\tmapColumn(\n\t\tempid,\n\t\tname,\n\t\tcountry,\n\t\tdname\n\t),\n\tpartitionBy('hash', 1)) ~> Payroll"
+				}
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/DerivedCol')]",
+			"type": "Microsoft.DataFactory/factories/dataflows",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"type": "MappingDataFlow",
+				"typeProperties": {
+					"sources": [
+						{
+							"dataset": {
+								"referenceName": "EmployeeData",
+								"type": "DatasetReference"
+							},
+							"name": "source1"
+						}
+					],
+					"sinks": [
+						{
+							"dataset": {
+								"referenceName": "Output",
+								"type": "DatasetReference"
+							},
+							"name": "AddedColumns"
+						}
+					],
+					"transformations": [
+						{
+							"name": "DerivedColumn1"
+						}
+					],
+					"script": "source(output(\n\t\tempid as string,\n\t\tname as string,\n\t\tcountry as string,\n\t\tdepartment as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tignoreNoFilesFound: false) ~> source1\nsource1 derive(country = upper(country),\n\t\tUpdatedCountry = iif(isNull(country), 'UNKNOWN', upper(country))) ~> DerivedColumn1\nDerivedColumn1 sink(allowSchemaDrift: true,\n\tvalidateSchema: false,\n\tinput(\n\t\tColumn_1 as string,\n\t\tColumn_2 as string,\n\t\tColumn_3 as string,\n\t\tColumn_4 as string\n\t),\n\tpartitionFileNames:['ModifiedData.csv'],\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true,\n\tpartitionBy('hash', 1)) ~> AddedColumns"
+				}
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/Empdeptdataflow')]",
+			"type": "Microsoft.DataFactory/factories/dataflows",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"type": "MappingDataFlow",
+				"typeProperties": {
+					"sources": [
+						{
+							"dataset": {
+								"referenceName": "EmployeeData",
+								"type": "DatasetReference"
+							},
+							"name": "source1"
+						},
+						{
+							"dataset": {
+								"referenceName": "DepartmentData",
+								"type": "DatasetReference"
+							},
+							"name": "source2"
+						}
+					],
+					"sinks": [
+						{
+							"dataset": {
+								"referenceName": "EmpDept",
+								"type": "DatasetReference"
+							},
+							"name": "sink1"
+						}
+					],
+					"transformations": [
+						{
+							"name": "Join1"
+						}
+					],
+					"script": "source(output(\n\t\tempid as string,\n\t\tname as string,\n\t\tcountry as string,\n\t\tdepartment as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tignoreNoFilesFound: false) ~> source1\nsource(output(\n\t\tdeptid as string,\n\t\tdname as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tignoreNoFilesFound: false) ~> source2\nsource1, source2 join(department == deptid,\n\tjoinType:'inner',\n\tbroadcast: 'auto')~> Join1\nJoin1 sink(allowSchemaDrift: true,\n\tvalidateSchema: false,\n\tinput(\n\t\tColumn_1 as string,\n\t\tColumn_2 as string,\n\t\tColumn_3 as string,\n\t\tColumn_4 as string\n\t),\n\tpartitionFileNames:['kchbhi'],\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true,\n\tmapColumn(\n\t\tempid,\n\t\tname,\n\t\tcountry,\n\t\tdname\n\t),\n\tpartitionBy('hash', 1)) ~> sink1"
+				}
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/Exists')]",
+			"type": "Microsoft.DataFactory/factories/dataflows",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"type": "MappingDataFlow",
+				"typeProperties": {
+					"sources": [
+						{
+							"dataset": {
+								"referenceName": "EmployeeData",
+								"type": "DatasetReference"
+							},
+							"name": "Employeee"
+						},
+						{
+							"dataset": {
+								"referenceName": "DepartmentData",
+								"type": "DatasetReference"
+							},
+							"name": "Department"
+						}
+					],
+					"sinks": [
+						{
+							"dataset": {
+								"referenceName": "Output",
+								"type": "DatasetReference"
+							},
+							"name": "ExistingDept"
+						}
+					],
+					"transformations": [
+						{
+							"name": "Exists"
+						}
+					],
+					"script": "source(output(\n\t\tempid as string,\n\t\tname as string,\n\t\tcountry as string,\n\t\tdepartment as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tignoreNoFilesFound: false) ~> Employeee\nsource(output(\n\t\tdeptid as string,\n\t\tdname as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tignoreNoFilesFound: false) ~> Department\nEmployeee, Department exists(department == deptid,\n\tnegate:false,\n\tbroadcast: 'auto')~> Exists\nExists sink(allowSchemaDrift: true,\n\tvalidateSchema: false,\n\tinput(\n\t\tColumn_1 as string,\n\t\tColumn_2 as string,\n\t\tColumn_3 as string,\n\t\tColumn_4 as string\n\t),\n\tpartitionFileNames:['ExistingDept'],\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true,\n\tpartitionBy('hash', 1)) ~> ExistingDept"
+				}
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/Filter')]",
+			"type": "Microsoft.DataFactory/factories/dataflows",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"type": "MappingDataFlow",
+				"typeProperties": {
+					"sources": [
+						{
+							"dataset": {
+								"referenceName": "EmployeeDataNew",
+								"type": "DatasetReference"
+							},
+							"name": "source1"
+						}
+					],
+					"sinks": [
+						{
+							"dataset": {
+								"referenceName": "Output",
+								"type": "DatasetReference"
+							},
+							"name": "sink1"
+						}
+					],
+					"transformations": [
+						{
+							"name": "Filter1"
+						}
+					],
+					"script": "parameters{\n\tDeptName as string (\"IT\")\n}\nsource(output(\n\t\tempid as string,\n\t\tname as string,\n\t\tgender as string,\n\t\tcountry as string,\n\t\tdepartment as string,\n\t\tsalary as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tignoreNoFilesFound: false) ~> source1\nsource1 filter(department == $DeptName) ~> Filter1\nFilter1 sink(allowSchemaDrift: true,\n\tvalidateSchema: false,\n\tinput(\n\t\tColumn_1 as string,\n\t\tColumn_2 as string,\n\t\tColumn_3 as string,\n\t\tColumn_4 as string\n\t),\n\tpartitionFileNames:['FilterByDept.csv'],\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true,\n\tpartitionBy('hash', 1)) ~> sink1"
+				}
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/FilterPayrollEmp')]",
+			"type": "Microsoft.DataFactory/factories/dataflows",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"type": "MappingDataFlow",
+				"typeProperties": {
+					"sources": [
+						{
+							"dataset": {
+								"referenceName": "EmployeeData",
+								"type": "DatasetReference"
+							},
+							"name": "source1"
+						}
+					],
+					"sinks": [
+						{
+							"dataset": {
+								"referenceName": "Output",
+								"type": "DatasetReference"
+							},
+							"name": "PayrollEmpData"
+						}
+					],
+					"transformations": [
+						{
+							"name": "Filter1"
+						}
+					],
+					"script": "source(output(\n\t\tempid as string,\n\t\tname as string,\n\t\tcountry as string,\n\t\tdepartment as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tignoreNoFilesFound: false) ~> source1\nsource1 filter(equals(department,'3')) ~> Filter1\nFilter1 sink(allowSchemaDrift: true,\n\tvalidateSchema: false,\n\tinput(\n\t\tColumn_1 as string,\n\t\tColumn_2 as string,\n\t\tColumn_3 as string,\n\t\tColumn_4 as string\n\t),\n\tpartitionFileNames:['PayrollEmp'],\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true,\n\tpartitionBy('hash', 1)) ~> PayrollEmpData"
+				}
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/LookUp')]",
+			"type": "Microsoft.DataFactory/factories/dataflows",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"type": "MappingDataFlow",
+				"typeProperties": {
+					"sources": [
+						{
+							"dataset": {
+								"referenceName": "EmployeeData",
+								"type": "DatasetReference"
+							},
+							"name": "Employee"
+						},
+						{
+							"dataset": {
+								"referenceName": "DepartmentData",
+								"type": "DatasetReference"
+							},
+							"name": "Department"
+						}
+					],
+					"sinks": [
+						{
+							"dataset": {
+								"referenceName": "Output",
+								"type": "DatasetReference"
+							},
+							"name": "LookUpResult"
+						}
+					],
+					"transformations": [
+						{
+							"name": "Lookup"
+						}
+					],
+					"script": "source(output(\n\t\tempid as string,\n\t\tname as string,\n\t\tcountry as string,\n\t\tdepartment as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tignoreNoFilesFound: false) ~> Employee\nsource(output(\n\t\tdeptid as string,\n\t\tdname as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tignoreNoFilesFound: false) ~> Department\nEmployee, Department lookup(department == deptid,\n\tmultiple: false,\n\tpickup: 'any',\n\tbroadcast: 'auto')~> Lookup\nLookup sink(allowSchemaDrift: true,\n\tvalidateSchema: false,\n\tinput(\n\t\tColumn_1 as string,\n\t\tColumn_2 as string,\n\t\tColumn_3 as string,\n\t\tColumn_4 as string\n\t),\n\tpartitionFileNames:['Lookup.csv'],\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true,\n\tpartitionBy('hash', 1)) ~> LookUpResult"
+				}
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/Pivot')]",
+			"type": "Microsoft.DataFactory/factories/dataflows",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"type": "MappingDataFlow",
+				"typeProperties": {
+					"sources": [
+						{
+							"dataset": {
+								"referenceName": "EmployeeDataSetNew",
+								"type": "DatasetReference"
+							},
+							"name": "Employee"
+						}
+					],
+					"sinks": [
+						{
+							"dataset": {
+								"referenceName": "Output",
+								"type": "DatasetReference"
+							},
+							"name": "sink1"
+						}
+					],
+					"transformations": [
+						{
+							"name": "Pivot1"
+						}
+					],
+					"script": "source(output(\n\t\tempid as string,\n\t\tname as string,\n\t\tgender as string,\n\t\tcountry as string,\n\t\tdepartment as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tignoreNoFilesFound: false) ~> Employee\nEmployee pivot(groupBy(department),\n\tpivotBy(gender),\n\t{} = count(empid),\n\tcolumnNaming: '$N$V',\n\tlateral: true) ~> Pivot1\nPivot1 sink(allowSchemaDrift: true,\n\tvalidateSchema: false,\n\tinput(\n\t\tColumn_1 as string,\n\t\tColumn_2 as string,\n\t\tColumn_3 as string,\n\t\tColumn_4 as string\n\t),\n\tpartitionFileNames:['PivotResult.csv'],\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true,\n\tpartitionBy('hash', 1)) ~> sink1"
+				}
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/Sort')]",
+			"type": "Microsoft.DataFactory/factories/dataflows",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"type": "MappingDataFlow",
+				"typeProperties": {
+					"sources": [
+						{
+							"dataset": {
+								"referenceName": "EmployeeData",
+								"type": "DatasetReference"
+							},
+							"name": "Employee"
+						}
+					],
+					"sinks": [
+						{
+							"dataset": {
+								"referenceName": "Output",
+								"type": "DatasetReference"
+							},
+							"name": "SortResult"
+						}
+					],
+					"transformations": [
+						{
+							"name": "Sort"
+						}
+					],
+					"script": "source(output(\n\t\tempid as string,\n\t\tname as string,\n\t\tcountry as string,\n\t\tdepartment as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tignoreNoFilesFound: false) ~> Employee\nEmployee sort(asc(name, true),\n\tcaseInsensitive: true,\n\tpartitionBy('hash', 1)) ~> Sort\nSort sink(allowSchemaDrift: true,\n\tvalidateSchema: false,\n\tinput(\n\t\tColumn_1 as string,\n\t\tColumn_2 as string,\n\t\tColumn_3 as string,\n\t\tColumn_4 as string\n\t),\n\tpartitionFileNames:['SortByName.csv'],\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true,\n\tpartitionBy('hash', 1)) ~> SortResult"
+				}
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/SurrogateKey')]",
+			"type": "Microsoft.DataFactory/factories/dataflows",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"type": "MappingDataFlow",
+				"typeProperties": {
+					"sources": [
+						{
+							"dataset": {
+								"referenceName": "StudentDataset",
+								"type": "DatasetReference"
+							},
+							"name": "Student"
+						}
+					],
+					"sinks": [
+						{
+							"dataset": {
+								"referenceName": "Output",
+								"type": "DatasetReference"
+							},
+							"name": "sink1"
+						}
+					],
+					"transformations": [
+						{
+							"name": "SurrogateKey1"
+						},
+						{
+							"name": "Select1"
+						}
+					],
+					"script": "source(output(\n\t\tName as string,\n\t\tAge as string,\n\t\tCity as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tignoreNoFilesFound: false) ~> Student\nStudent keyGenerate(output(StudentID as long),\n\tstartAt: 1L) ~> SurrogateKey1\nSurrogateKey1 select(mapColumn(\n\t\tStudentID,\n\t\tName,\n\t\tAge,\n\t\tCity\n\t),\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true) ~> Select1\nSelect1 sink(allowSchemaDrift: true,\n\tvalidateSchema: false,\n\tinput(\n\t\tColumn_1 as string,\n\t\tColumn_2 as string,\n\t\tColumn_3 as string,\n\t\tColumn_4 as string\n\t),\n\tpartitionFileNames:['Student.csv'],\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true,\n\tpartitionBy('hash', 1)) ~> sink1"
+				}
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/TotalEmpByDept')]",
+			"type": "Microsoft.DataFactory/factories/dataflows",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"type": "MappingDataFlow",
+				"typeProperties": {
+					"sources": [
+						{
+							"dataset": {
+								"referenceName": "EmployeeData",
+								"type": "DatasetReference"
+							},
+							"name": "Employee"
+						},
+						{
+							"dataset": {
+								"referenceName": "DepartmentData",
+								"type": "DatasetReference"
+							},
+							"name": "Department"
+						}
+					],
+					"sinks": [
+						{
+							"dataset": {
+								"referenceName": "Output",
+								"type": "DatasetReference"
+							},
+							"name": "sink1"
+						}
+					],
+					"transformations": [
+						{
+							"name": "Aggregate1"
+						},
+						{
+							"name": "Join1"
+						}
+					],
+					"script": "source(output(\n\t\tempid as string,\n\t\tname as string,\n\t\tcountry as string,\n\t\tdepartment as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tignoreNoFilesFound: false) ~> Employee\nsource(output(\n\t\tdeptid as string,\n\t\tdname as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tignoreNoFilesFound: false) ~> Department\nEmployee aggregate(groupBy(department),\n\tTotalEmployee = count(empid)) ~> Aggregate1\nAggregate1, Department join(department == deptid,\n\tjoinType:'inner',\n\tbroadcast: 'auto')~> Join1\nJoin1 sink(allowSchemaDrift: true,\n\tvalidateSchema: false,\n\tinput(\n\t\tColumn_1 as string,\n\t\tColumn_2 as string,\n\t\tColumn_3 as string,\n\t\tColumn_4 as string\n\t),\n\tpartitionFileNames:['TotalEmpByDept'],\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true,\n\tmapColumn(\n\t\tTotalEmployee,\n\t\tdname\n\t),\n\tpartitionBy('hash', 1)) ~> sink1"
+				}
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/UnPivot')]",
+			"type": "Microsoft.DataFactory/factories/dataflows",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"type": "MappingDataFlow",
+				"typeProperties": {
+					"sources": [
+						{
+							"dataset": {
+								"referenceName": "Fruits",
+								"type": "DatasetReference"
+							},
+							"name": "Fruits"
+						}
+					],
+					"sinks": [
+						{
+							"dataset": {
+								"referenceName": "Output",
+								"type": "DatasetReference"
+							},
+							"name": "sink1"
+						}
+					],
+					"transformations": [
+						{
+							"name": "Unpivot1"
+						}
+					],
+					"script": "source(output(\n\t\tPO as string,\n\t\tVendor as string,\n\t\tApple as string,\n\t\tMango as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tignoreNoFilesFound: false) ~> Fruits\nFruits unpivot(output(\n\t\tFruits as string,\n\t\tAmount as string\n\t),\n\tungroupBy(PO,\n\t\tVendor),\n\tlateral: true,\n\tignoreNullPivots: false) ~> Unpivot1\nUnpivot1 sink(allowSchemaDrift: true,\n\tvalidateSchema: false,\n\tinput(\n\t\tColumn_1 as string,\n\t\tColumn_2 as string,\n\t\tColumn_3 as string,\n\t\tColumn_4 as string\n\t),\n\tpartitionFileNames:['UnPivot.csv'],\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true,\n\tpartitionBy('hash', 1)) ~> sink1"
+				}
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/WindowTransformation')]",
+			"type": "Microsoft.DataFactory/factories/dataflows",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"type": "MappingDataFlow",
+				"typeProperties": {
+					"sources": [
+						{
+							"dataset": {
+								"referenceName": "EmployeeDataNew",
+								"type": "DatasetReference"
+							},
+							"name": "Employees"
+						}
+					],
+					"sinks": [
+						{
+							"dataset": {
+								"referenceName": "Output",
+								"type": "DatasetReference"
+							},
+							"name": "WindowTrans"
+						}
+					],
+					"transformations": [
+						{
+							"name": "Window1"
+						}
+					],
+					"script": "source(output(\n\t\tempid as integer,\n\t\tname as string,\n\t\tgender as string,\n\t\tcountry as string,\n\t\tdepartment as string,\n\t\tsalary as integer\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tignoreNoFilesFound: false) ~> Employees\nEmployees window(over(department),\n\tasc(salary, true),\n\tAvgSalary = avg(salary)) ~> Window1\nWindow1 sink(allowSchemaDrift: true,\n\tvalidateSchema: false,\n\tinput(\n\t\tColumn_1 as string,\n\t\tColumn_2 as string,\n\t\tColumn_3 as string,\n\t\tColumn_4 as string\n\t),\n\tpartitionFileNames:['WindowTrans.csv'],\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true,\n\tpartitionBy('hash', 1)) ~> WindowTrans"
+				}
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/WranglingDataFlow')]",
+			"type": "Microsoft.DataFactory/factories/dataflows",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"type": "WranglingDataFlow",
+				"typeProperties": {
+					"sources": [
+						{
+							"name": "EmployeeData",
+							"script": "source(allowSchemaDrift: true,\n\tvalidateSchema: false,\n\tignoreNoFilesFound: false) ~> EmployeeData",
+							"dataset": {
+								"referenceName": "EmployeeData",
+								"type": "DatasetReference"
+							}
+						},
+						{
+							"name": "DepartmentData",
+							"script": "source(allowSchemaDrift: true,\n\tvalidateSchema: false,\n\tignoreNoFilesFound: false) ~> DepartmentData",
+							"dataset": {
+								"referenceName": "DepartmentData",
+								"type": "DatasetReference"
+							}
+						}
+					],
+					"script": "section Section1;\r\nshared EmployeeData = let\r\n  AdfDoc = AzureStorage.BlobContents(\"https://ambujstorageaccount.blob.core.windows.net/adfdemo/input/Emp.csv\"),\r\n  Csv = Csv.Document(AdfDoc, [Delimiter = \",\", Encoding = TextEncoding.Utf8, QuoteStyle = QuoteStyle.Csv]),\r\n  PromotedHeaders = Table.PromoteHeaders(Csv, [PromoteAllScalars = true])\r\nin\r\n  PromotedHeaders;\r\nshared DepartmentData = let\r\n  AdfDoc = AzureStorage.BlobContents(\"https://ambujstorageaccount.blob.core.windows.net/adfdemo/input/Dept.csv\"),\r\n  Csv = Csv.Document(AdfDoc, [Delimiter = \",\", Encoding = TextEncoding.Utf8, QuoteStyle = QuoteStyle.Csv]),\r\n  PromotedHeaders = Table.PromoteHeaders(Csv, [PromoteAllScalars = true])\r\nin\r\n  PromotedHeaders;\r\nshared UserQuery = let\r\n  Source = EmployeeData,\r\n  #\"Removed columns\" = Table.RemoveColumns(Source, {\"country\"}),\r\n  #\"Filtered rows\" = Table.SelectRows(#\"Removed columns\", each [department] = \"2\"),\r\n  #\"Merged queries\" = Table.NestedJoin(#\"Filtered rows\", {\"department\"}, DepartmentData, {\"deptid\"}, \"DepartmentData\", JoinKind.Inner),\r\n  #\"Expanded DepartmentData\" = Table.ExpandTableColumn(#\"Merged queries\", \"DepartmentData\", {\"deptid\", \"dname\"}, {\"DepartmentData.deptid\", \"DepartmentData.dname\"}),\r\n  #\"Removed columns 1\" = Table.RemoveColumns(#\"Expanded DepartmentData\", {\"DepartmentData.deptid\"})\r\nin\r\n  #\"Removed columns 1\";\r\n",
+					"documentLocale": "en-us"
+				}
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/AggregateDataFlow')]",
+			"type": "Microsoft.DataFactory/factories/pipelines",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"activities": [
+					{
+						"name": "Data flow1",
+						"type": "ExecuteDataFlow",
+						"dependsOn": [],
+						"policy": {
+							"timeout": "1.00:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"dataflow": {
+								"referenceName": "TotalEmpByDept",
+								"type": "DataFlowReference",
+								"parameters": {},
+								"datasetParameters": {
+									"Employee": {},
+									"Department": {},
+									"sink1": {}
+								}
+							},
+							"staging": {},
+							"compute": {
+								"coreCount": 8,
+								"computeType": "General"
+							},
+							"traceLevel": "Fine"
+						}
+					}
+				],
+				"policy": {
+					"elapsedTimeMetric": {},
+					"cancelAfter": {}
+				},
+				"annotations": [],
+				"lastPublishTime": "2022-01-16T05:51:12Z"
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/dataflows/TotalEmpByDept')]"
+			]
+		}
+	]
+}
