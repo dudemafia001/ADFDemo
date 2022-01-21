@@ -1,0 +1,9 @@
+{
+	"name": "AdfAmbujDwivedi",
+	"location": "centralus",
+	"identity": {
+		"type": "SystemAssigned",
+		"principalId": "d54bb782-2f07-4cee-8cc9-3a07ff8baff0",
+		"tenantId": "8b6892a0-ece7-49aa-b76c-f6640de2be1d"
+	}
+}

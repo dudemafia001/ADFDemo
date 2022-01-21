@@ -1,0 +1,17 @@
+{
+	"name": "SqlServer1",
+	"type": "Microsoft.DataFactory/factories/linkedservices",
+	"properties": {
+		"annotations": [],
+		"type": "SqlServer",
+		"typeProperties": {
+			"connectionString": "integrated security=True;data source=DESKTOP-O0EC1IM\\SQLEXPRESS;initial catalog=Employee",
+			"userName": "DESKTOP-O0EC1IM\\LENOVO",
+			"encryptedCredential": "eyJDcmVkZW50aWFsSWQiOiJmODA5ZGFjNC0xYmUxLTQwNWYtODk0OS00YWI0ZWM2Y2MxNjIiLCJWZXJzaW9uIjoiMi4wIiwiQ2xhc3NUeXBlIjoiTWljcm9zb2Z0LkRhdGFQcm94eS5Db3JlLkludGVyU2VydmljZURhdGFDb250cmFjdC5DcmVkZW50aWFsU1UwNkNZMTQifQ=="
+		},
+		"connectVia": {
+			"referenceName": "Self-hostedIR",
+			"type": "IntegrationRuntimeReference"
+		}
+	}
+}

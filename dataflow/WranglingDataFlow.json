@@ -1,0 +1,28 @@
+{
+	"name": "WranglingDataFlow",
+	"properties": {
+		"type": "WranglingDataFlow",
+		"typeProperties": {
+			"sources": [
+				{
+					"name": "EmployeeData",
+					"script": "source(allowSchemaDrift: true,\n\tvalidateSchema: false,\n\tignoreNoFilesFound: false) ~> EmployeeData",
+					"dataset": {
+						"referenceName": "EmployeeData",
+						"type": "DatasetReference"
+					}
+				},
+				{
+					"name": "DepartmentData",
+					"script": "source(allowSchemaDrift: true,\n\tvalidateSchema: false,\n\tignoreNoFilesFound: false) ~> DepartmentData",
+					"dataset": {
+						"referenceName": "DepartmentData",
+						"type": "DatasetReference"
+					}
+				}
+			],
+			"script": "section Section1;\r\nshared EmployeeData = let\r\n  AdfDoc = AzureStorage.BlobContents(\"https://ambujstorageaccount.blob.core.windows.net/adfdemo/input/Emp.csv\"),\r\n  Csv = Csv.Document(AdfDoc, [Delimiter = \",\", Encoding = TextEncoding.Utf8, QuoteStyle = QuoteStyle.Csv]),\r\n  PromotedHeaders = Table.PromoteHeaders(Csv, [PromoteAllScalars = true])\r\nin\r\n  PromotedHeaders;\r\nshared DepartmentData = let\r\n  AdfDoc = AzureStorage.BlobContents(\"https://ambujstorageaccount.blob.core.windows.net/adfdemo/input/Dept.csv\"),\r\n  Csv = Csv.Document(AdfDoc, [Delimiter = \",\", Encoding = TextEncoding.Utf8, QuoteStyle = QuoteStyle.Csv]),\r\n  PromotedHeaders = Table.PromoteHeaders(Csv, [PromoteAllScalars = true])\r\nin\r\n  PromotedHeaders;\r\nshared UserQuery = let\r\n  Source = EmployeeData,\r\n  #\"Removed columns\" = Table.RemoveColumns(Source, {\"country\"}),\r\n  #\"Filtered rows\" = Table.SelectRows(#\"Removed columns\", each [department] = \"2\"),\r\n  #\"Merged queries\" = Table.NestedJoin(#\"Filtered rows\", {\"department\"}, DepartmentData, {\"deptid\"}, \"DepartmentData\", JoinKind.Inner),\r\n  #\"Expanded DepartmentData\" = Table.ExpandTableColumn(#\"Merged queries\", \"DepartmentData\", {\"deptid\", \"dname\"}, {\"DepartmentData.deptid\", \"DepartmentData.dname\"}),\r\n  #\"Removed columns 1\" = Table.RemoveColumns(#\"Expanded DepartmentData\", {\"DepartmentData.deptid\"})\r\nin\r\n  #\"Removed columns 1\";\r\n",
+			"documentLocale": "en-us"
+		}
+	}
+}

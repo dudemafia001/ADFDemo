@@ -1,0 +1,62 @@
+{
+	"name": "Conditional",
+	"properties": {
+		"type": "MappingDataFlow",
+		"typeProperties": {
+			"sources": [
+				{
+					"dataset": {
+						"referenceName": "EmployeeData",
+						"type": "DatasetReference"
+					},
+					"name": "Employee"
+				},
+				{
+					"dataset": {
+						"referenceName": "DepartmentData",
+						"type": "DatasetReference"
+					},
+					"name": "Department"
+				}
+			],
+			"sinks": [
+				{
+					"dataset": {
+						"referenceName": "Output",
+						"type": "DatasetReference"
+					},
+					"name": "IT"
+				},
+				{
+					"dataset": {
+						"referenceName": "Output",
+						"type": "DatasetReference"
+					},
+					"name": "HR"
+				},
+				{
+					"dataset": {
+						"referenceName": "Output",
+						"type": "DatasetReference"
+					},
+					"name": "Payroll"
+				}
+			],
+			"transformations": [
+				{
+					"name": "ConditionalSplit"
+				},
+				{
+					"name": "JoinForIT"
+				},
+				{
+					"name": "JoinForHR"
+				},
+				{
+					"name": "JoinForPayroll"
+				}
+			],
+			"script": "source(output(\n\t\tempid as string,\n\t\tname as string,\n\t\tcountry as string,\n\t\tdepartment as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tignoreNoFilesFound: false) ~> Employee\nsource(output(\n\t\tdeptid as string,\n\t\tdname as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tignoreNoFilesFound: false) ~> Department\nEmployee split(equals(department,'1'),\n\tequals(department,'2'),\n\tequals(department,'3'),\n\tdisjoint: false) ~> ConditionalSplit@(ITEmployee, HREmployee, PayrollEmployee)\nConditionalSplit@ITEmployee, Department join(department == deptid,\n\tjoinType:'inner',\n\tbroadcast: 'auto')~> JoinForIT\nConditionalSplit@HREmployee, Department join(department == deptid,\n\tjoinType:'inner',\n\tbroadcast: 'auto')~> JoinForHR\nConditionalSplit@PayrollEmployee, Department join(department == deptid,\n\tjoinType:'inner',\n\tbroadcast: 'auto')~> JoinForPayroll\nJoinForIT sink(allowSchemaDrift: true,\n\tvalidateSchema: false,\n\tinput(\n\t\tColumn_1 as string,\n\t\tColumn_2 as string,\n\t\tColumn_3 as string,\n\t\tColumn_4 as string\n\t),\n\tpartitionFileNames:['ITEmp.csv'],\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true,\n\tmapColumn(\n\t\tempid,\n\t\tname,\n\t\tcountry,\n\t\tdname\n\t),\n\tpartitionBy('hash', 1)) ~> IT\nJoinForHR sink(allowSchemaDrift: true,\n\tvalidateSchema: false,\n\tinput(\n\t\tColumn_1 as string,\n\t\tColumn_2 as string,\n\t\tColumn_3 as string,\n\t\tColumn_4 as string\n\t),\n\tpartitionFileNames:['HREmp.csv'],\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true,\n\tmapColumn(\n\t\tempid,\n\t\tname,\n\t\tcountry,\n\t\tdname\n\t),\n\tpartitionBy('hash', 1)) ~> HR\nJoinForPayroll sink(allowSchemaDrift: true,\n\tvalidateSchema: false,\n\tinput(\n\t\tColumn_1 as string,\n\t\tColumn_2 as string,\n\t\tColumn_3 as string,\n\t\tColumn_4 as string\n\t),\n\tpartitionFileNames:['PayrollEmp.csv'],\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true,\n\tmapColumn(\n\t\tempid,\n\t\tname,\n\t\tcountry,\n\t\tdname\n\t),\n\tpartitionBy('hash', 1)) ~> Payroll"
+		}
+	}
+}
